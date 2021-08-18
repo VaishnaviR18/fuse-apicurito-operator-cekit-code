@@ -1,0 +1,81 @@
+- name: "builder"
+  from: "registry-proxy.engineering.redhat.com/rh-osbs/rhel8/go-toolset"
+  version: "1.0"
+
+  envs:
+  - name: "GOPATH"
+    value: "/go"
+  - name: "GO111MODULE"
+    value: "on"
+  - name: "GOOS"
+    value: "linux"
+  - name: "GOARCH"
+    value: "amd64"
+          
+  artifacts:
+  - name: gen-licenses.sh
+    path: gen-licenses.sh
+    dest: /
+
+  run:
+    workdir: $REMOTE_SOURCE_DIR/app/apicurito
+    cmd:
+      - "go build -mod=vendor -o build/_output/bin/apicurio-operator cmd/manager/main.go"
+      - "/gen-licenses.sh"
+ 
+
+#final image
+
+- name: &name "fuse7/fuse-apicurito-rhel8-operator"
+  from: "registry-proxy.engineering.redhat.com/rh-osbs/ubi8/ubi-minimal"
+  version: &version "1.9"
+  description: "A Kubernetes operator based on the Operator SDK that installs and maintains Apicurito a cluster."
+
+  labels:
+  - name: "com.redhat.component"
+    value: "fuse-apicurito-rhel-8-operator-container"
+  - name: "maintainer"
+    value: "Otavio Piske <opiske@redhat.com>"   
+  - name: "io.k8s.display-name"
+    value: "Red Hat Fuse - APICurito Operator"
+  - name: "io.openshift.tags"
+    value: "fuse,apicurito,operator"
+
+  artifacts:
+  - image: builder
+    path: $REMOTE_SOURCE_DIR/app/apicurito/build/_output/bin/apicurio-operator
+    dest: ${OPERATOR}
+
+  - image: builder
+    path: $REMOTE_SOURCE_DIR/app/apicurito/build/bin
+    dest: /usr/local/bin
+
+  - image: builder
+    path: $REMOTE_SOURCE_DIR/app/apicurito/licenses
+    dest: /root/licenses/fuse-apicurito-operator/licenses
+
+  - name: build/conf
+    path: build/conf
+    dest: /conf  
+
+  modules:
+    repositories:
+      - name: modules
+        path: modules
+    install:
+      - name: environ
+
+  run: 
+    user: 1001
+    entrypoint: 
+      - "/usr/local/bin/entrypoint"
+      - "run"
+    cmd: 
+      - "/usr/local/bin/user_setup"    
+
+#osbs:
+ # configuration:
+  #  container_file: container.yaml
+   #   repository:
+    #        name: containers/fuse-apicurito-operator
+     #       branch: private-devel-fuse-7.9-openshift-rhel-8

@@ -1,0 +1,5 @@
+image_build_method: imagebuilder
+remote_source:
+  repo: https://code.engineering.redhat.com/gerrit/jboss-fuse/apicurio-operators
+  ref: 37302d1f290c793ff1c06e9ec2f1ab196125f96e
+  pkg_managers: []

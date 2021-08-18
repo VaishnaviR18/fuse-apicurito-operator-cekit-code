@@ -1,0 +1,13 @@
+schema_version: 1
+
+name: environ
+version: 1.0
+description: "Add envs"
+
+envs:
+  - name: NAMESPACE_NAME
+    value: "ns-apicurito"
+  - name: APP_IMAGE
+    value: "fuse-apicurito-operator"
+  - name: OPERATOR
+    value: "/usr/local/bin/apicurio-operator"    
